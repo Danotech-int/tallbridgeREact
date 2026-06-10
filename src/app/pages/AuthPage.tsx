@@ -60,6 +60,10 @@ export default function AuthPage() {
   const [signupFieldErr, setSignupFieldErr] = useState({ first: "", last: "", email: "", pass: "", confirm: "" });
   const [signupLoading, setSignupLoading] = useState(false);
 
+  // Google state
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleErr, setGoogleErr] = useState("");
+
   // OTP state
   const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
   const [otpErr, setOtpErr] = useState("");
@@ -86,11 +90,11 @@ export default function AuthPage() {
   };
 
   useEffect(() => {
-    const check = async () => {
-      const { data: { session } } = await db.auth.getSession();
+    // Listen for auth state changes (handles magic link callbacks and OAuth returns)
+    const { data: { subscription } } = db.auth.onAuthStateChange((_event, session) => {
       if (session) redirectAfterAuth();
-    };
-    check();
+    });
+    return () => subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -105,13 +109,23 @@ export default function AuthPage() {
 
   const handleGoogle = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const redirect = course
-      ? `${window.location.origin}/payment?course=${course}`
-      : `${window.location.origin}/dashboard`;
-    await db.auth.signInWithOAuth({
+    setGoogleErr("");
+    setGoogleLoading(true);
+    // Store course in localStorage so PaymentPage can read it after OAuth redirect
+    if (course) localStorage.setItem("tb_pending_course", course);
+    const redirect = `${window.location.origin}/payment${course ? `?course=${course}` : ""}`;
+    const { error } = await db.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: redirect },
     });
+    setGoogleLoading(false);
+    if (error) {
+      setGoogleErr(
+        error.message.includes("provider") || error.message.includes("not enabled")
+          ? "Google sign-in is not enabled yet. Please use email and password, or contact support@tallbridge.com."
+          : "Google sign-in failed. Please try again or use email below."
+      );
+    }
   };
 
   const handleForgotPassword = () => {
@@ -162,7 +176,7 @@ export default function AuthPage() {
     if (!valid) return;
 
     setSignupLoading(true);
-    const { error } = await db.auth.signUp({
+    const { data, error } = await db.auth.signUp({
       email: signupEmail,
       password: signupPass,
       options: {
@@ -176,6 +190,17 @@ export default function AuthPage() {
         ? "An account with this email already exists. Try logging in instead."
         : error.message;
       setSignupErr(msg);
+      return;
+    }
+
+    // If Supabase auto-confirmed (session returned immediately), skip OTP
+    if (data.session) {
+      const msg = course && courseData
+        ? `Account created! Taking you to complete your ${courseData.name} enrollment...`
+        : "Account created! Taking you to your dashboard...";
+      setSuccessMsg(msg);
+      setShowSuccess(true);
+      setTimeout(redirectAfterAuth, 1500);
       return;
     }
 
@@ -384,6 +409,9 @@ export default function AuthPage() {
                   {otpLoading ? "Verifying..." : "Verify email →"}
                 </button>
               </form>
+              <p style={{ fontSize: ".78rem", color: "#999", textAlign: "center", marginTop: "1rem", lineHeight: 1.5 }}>
+                Received a link instead of a code? Click the link in the email — it will log you in automatically.
+              </p>
 
               <div className="otp-resend">
                 {"Didn't receive a code?"}{" "}
@@ -422,9 +450,10 @@ export default function AuthPage() {
               <div className={`auth-panel${tab === "login" ? " active" : ""}`}>
                 <h2 className="auth-form-heading">Welcome <em>back.</em></h2>
                 <p className="auth-form-sub">Log in to continue your learning journey.</p>
-                <button className="btn-google" onClick={handleGoogle}>
-                  <GoogleIcon /> Continue with Google
+                <button className="btn-google" onClick={handleGoogle} disabled={googleLoading}>
+                  <GoogleIcon /> {googleLoading ? "Redirecting to Google..." : "Continue with Google"}
                 </button>
+                {googleErr && <div className="auth-form-error visible" style={{ marginTop: ".5rem" }}>{googleErr}</div>}
                 <div className="auth-divider"><span>or</span></div>
                 <form className="auth-form" noValidate onSubmit={handleLogin}>
                   <div className="field-group">
@@ -470,9 +499,10 @@ export default function AuthPage() {
               <div className={`auth-panel${tab === "signup" ? " active" : ""}`}>
                 <h2 className="auth-form-heading">Create your <em>account.</em></h2>
                 <p className="auth-form-sub">One account. Every course {"you'll"} ever need.</p>
-                <button className="btn-google" onClick={handleGoogle}>
-                  <GoogleIcon /> Sign up with Google
+                <button className="btn-google" onClick={handleGoogle} disabled={googleLoading}>
+                  <GoogleIcon /> {googleLoading ? "Redirecting to Google..." : "Sign up with Google"}
                 </button>
+                {googleErr && <div className="auth-form-error visible" style={{ marginTop: ".5rem" }}>{googleErr}</div>}
                 <div className="auth-divider"><span>or</span></div>
                 <form className="auth-form" noValidate onSubmit={handleSignup}>
                   <div className="field-row">
