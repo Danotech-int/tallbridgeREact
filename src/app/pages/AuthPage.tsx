@@ -113,7 +113,7 @@ export default function AuthPage() {
     setGoogleLoading(true);
     // Store course in localStorage so PaymentPage can read it after OAuth redirect
     if (course) localStorage.setItem("tb_pending_course", course);
-    const redirect = `${window.location.origin}/payment${course ? `?course=${course}` : ""}`;
+    const redirect = `${window.location.origin}/auth`;
     const { error } = await db.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: redirect },

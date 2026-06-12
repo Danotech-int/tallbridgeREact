@@ -162,7 +162,7 @@ export default function DashboardPage() {
                   <div
                     className={`dash-module-item${unlocked ? " clickable" : ""}`}
                     key={m.num}
-                    onClick={() => unlocked && navigate(`/learn/esl`)}
+                    onClick={() => unlocked && (window.location.href = "https://app.tallbridgeinstitute.com")}
                     style={unlocked ? { cursor: "pointer" } : {}}
                   >
                     <div className={`dash-module-num${m.free ? " free" : ""}`}>{m.num}</div>
@@ -184,7 +184,7 @@ export default function DashboardPage() {
             <button
               className="btn-auth-submit lime"
               style={{ margin: "1.5rem 1.5rem 1.5rem", width: "calc(100% - 3rem)" }}
-              onClick={() => navigate("/learn/esl")}
+              onClick={() => window.location.href = "https://app.tallbridgeinstitute.com"}
             >
               {hasPaid ? "Continue learning →" : "Start Module 1 (free) →"}
             </button>

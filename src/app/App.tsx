@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router";
 import "../styles/fonts.css";
 import "./styles/tallbridge.css";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 import HomePage from "./pages/HomePage";
 import CoursesPage from "./pages/CoursesPage";
@@ -10,7 +11,6 @@ import PMPage from "./pages/PMPage";
 import AuthPage from "./pages/AuthPage";
 import PaymentPage from "./pages/PaymentPage";
 import DashboardPage from "./pages/DashboardPage";
-import LMSPage from "./pages/LMSPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 
@@ -66,7 +66,6 @@ export default function App() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/learn/:course" element={<LMSPage />} />
       </Routes>
     </BrowserRouter>
   );

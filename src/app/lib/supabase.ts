@@ -1,9 +1,10 @@
+/// <reference types="vite/client" />
 import { createClient } from "@supabase/supabase-js";
 
 // Public anon keys — safe to include in frontend code (Row Level Security enforces access)
 // For production hosting, set these as environment variables instead
-const SUPA_URL = import.meta.env.VITE_SUPABASE_URL || "https://xhxchpsfgxrzpyndxdyv.supabase.co";
-const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_3zfwFx2JSKvI2EQSl6I_uA_q3yJPgG8";
+const SUPA_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPA_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY 
 
 export const db = createClient(SUPA_URL, SUPA_KEY);
 
