@@ -139,6 +139,11 @@ export default function AuthPage() {
     e.preventDefault();
     setGoogleErr("");
     setGoogleLoading(true);
+    if (course) localStorage.setItem("tb_pending_course", course);
+
+    // Use window.location.origin so it works on any domain
+
+    const redirect = `${window.location.origin}/auth`;
     // Store course in localStorage so PaymentPage can read it after OAuth redirect
     if (course) localStorage.setItem("tb_pending_course", course);
 
